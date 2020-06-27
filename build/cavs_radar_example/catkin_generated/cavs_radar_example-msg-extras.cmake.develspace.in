@@ -1,0 +1,2 @@
+set(cavs_radar_example_MESSAGE_FILES "/home/jonah/cavs_ws/src/cavs_radar_example/msg/RadarDetection.msg")
+set(cavs_radar_example_SERVICE_FILES "")

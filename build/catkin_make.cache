@@ -1,0 +1,2 @@
+cavs_radar_example:radar_msgs
+-DCATKIN_DEVEL_PREFIX=/home/jonah/cavs_ws/devel -DCMAKE_INSTALL_PREFIX=/home/jonah/cavs_ws/install -G Unix Makefiles

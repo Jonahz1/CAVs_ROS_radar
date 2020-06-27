@@ -1,0 +1,8 @@
+prefix=/home/jonah/cavs_ws/devel
+
+Name: cavs_radar_example
+Description: Description of cavs_radar_example
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

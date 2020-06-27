@@ -1,0 +1,2 @@
+set(radar_msgs_MESSAGE_FILES "/home/jonah/cavs_ws/src/radar_msgs/msg/RadarDetection.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarDetectionArray.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarDetectionStamped.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarErrorStatus.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarStatus.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarTrack.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarTrackArray.msg;/home/jonah/cavs_ws/src/radar_msgs/msg/RadarTrackStamped.msg")
+set(radar_msgs_SERVICE_FILES "")
