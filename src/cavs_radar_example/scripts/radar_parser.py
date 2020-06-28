@@ -53,19 +53,20 @@ def radar_parser():
 	encoded_message = bus.recv() #get data off bus recieve buffer 
 	rospy.loginfo("Got message on CAN Bus") #logs for recieving CAN bus message
 
-	#Decode Message
+	#Decode message
 	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
         rospy.loginfo(counter) #logs counter to terminal
 	counter = counter + 1 
 
-	#update message
+	#Update message
 	radar_message.position.x = decoded_message['Radar_Target_Xpos']
 	radar_message.position.y = decoded_message['Radar_Target_Ypos']
 	radar_message.position.z = None 
-	radar_message.velocity.x = 0
-	radar_message.velocity.y = 0
-	radar_message.velocity.z = 0 
+	radar_message.velocity.x = decoded_message['Radar_Target_Vx']
+	radar_message.velocity.y = decoded_message['Radar_Target_Vy']
+	radar_message.velocity.z = None 
 
+	#Publish message
         pub.publish(radar_message) #publishes message to topic radar_data
         rate.sleep() #regulates publishing rate 
 
