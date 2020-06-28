@@ -1,72 +1,14 @@
 #!/usr/bin/env python
-# Software License Agreement (BSD License)
-#
-# Copyright (c) 2008, Willow Garage, Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above
-#    copyright notice, this list of conditions and the following
-#    disclaimer in the documentation and/or other materials provided
-#    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#
-# Revision $Id$
+
+#Jonah Gandy 
+#NetID: jtg390
+#source 1: https://pypi.org/project/cantools/
+#source 2: http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29
 
 import rospy
 import cantools
 import can
-import sys
-import os 
-import threading
-
-from std_msgs.msg import String
 from radar_msgs.msg import RadarDetection
-
- #define message as global variable, written to in handle_bus(), read in ROS node
-
-#supporting thread to handle CAN Bus
-def handle_bus():
-    #message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
-    message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #uncomment to test on kvirtualbus 
-    bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #setup bus for recieving data
-
-    while not rospy.is_shutdown(): 
-	#bus ready to recv data, this also gets data off bus buffer if it is there
-	encoded_message = bus.recv(timeout=10) #recv is a blocking call, data will not update unless new data is on the BUS 
-	if (encoded_message==None):
-		print("Timeout!")
-		sys.exit()					  
-	print("Got message on CAN Bus!")
-	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
-	
-        #update radar_message with new CAN data
-	radar_message.position.x = 0
-	radar_message.position.y = 0
-	radar_message.position.z = 0 
-        radar_message.velocity.x = 0
-        radar_message.velocity.y = 0
-        radar_message.velocity.z = 0 
 
 #supporting function to extract information from .dbc file 
 def extract_dbc(DBC_FILE_PATH, MESSAGE_NAME):
@@ -83,14 +25,15 @@ def extract_dbc(DBC_FILE_PATH, MESSAGE_NAME):
 
 def radar_parser():
     #ROS node setup 
-    pub = rospy.Publisher('radar_data', RadarDetection, queue_size=10) #defines topic name, message type, queue size
+    pub = rospy.Publisher('radar_data', RadarDetection, queue_size=10) #defines topic name, message type, queue sizes
     rospy.init_node('radar_parser', anonymous=True) #defines node unique node name 
     rate = rospy.Rate(10) # 10hz / 100ms publishing rate
 
-    #message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
-    message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #test on kvirtualbus 
-    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel='vcan0') #setup bus for recieving data
-    bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #test bus 
+    message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
+    bus = can.interface.Bus(bustype='kvaser', channel='vcan0') #setup bus for recieving data
+
+    #message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #test on kvirtualbus
+    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #test bus 
 
     #init message
     radar_message = RadarDetection()
@@ -103,19 +46,22 @@ def radar_parser():
 
 
     counter = 0 #counter to keep track of publisher runtime
+
+    #publishing loop
     while not rospy.is_shutdown():
+	#Recieve CAN Msg
 	encoded_message = bus.recv() #get data off bus recieve buffer 
 	rospy.loginfo("Got message on CAN Bus") #logs for recieving CAN bus message
+
+	#Decode Message
 	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
-	rospy.loginfo(decoded_message['Radar_Target_Xpos'])
         rospy.loginfo(counter) #logs counter to terminal
 	counter = counter + 1 
 
 	#update message
-	radar_message = RadarDetection()
 	radar_message.position.x = decoded_message['Radar_Target_Xpos']
-	radar_message.position.y = 0
-	radar_message.position.z = 0 
+	radar_message.position.y = decoded_message['Radar_Target_Ypos']
+	radar_message.position.z = None 
 	radar_message.velocity.x = 0
 	radar_message.velocity.y = 0
 	radar_message.velocity.z = 0 
