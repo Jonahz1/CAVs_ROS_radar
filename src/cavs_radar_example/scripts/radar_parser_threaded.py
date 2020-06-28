@@ -43,7 +43,7 @@ import threading
 from std_msgs.msg import String
 from radar_msgs.msg import RadarDetection
 
- #define message as global variable, written to in handle_bus(), read in ROS node
+radar_message = RadarDetection() #define message as global variable, written to in handle_bus(), read in ROS node
 
 #supporting thread to handle CAN Bus
 def handle_bus():
@@ -87,40 +87,25 @@ def radar_parser():
     rospy.init_node('radar_parser', anonymous=True) #defines node unique node name 
     rate = rospy.Rate(10) # 10hz / 100ms publishing rate
 
-    #message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
-    message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #test on kvirtualbus 
-    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel='vcan0') #setup bus for recieving data
-    bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #test bus 
-
-    #init message
-    radar_message = RadarDetection()
+    t1 = threading.Thread(target=handle_bus())
+    t1.start()
+        
+    #setup position
     radar_message.position.x = 0
     radar_message.position.y = 0
     radar_message.position.z = 0 #will always be zero (data only give x & y position) 
+    #setup velocity
     radar_message.velocity.x = 0
     radar_message.velocity.y = 0
     radar_message.velocity.z = 0 #will always be zero (data only give x & y velocity)
 
 
-    counter = 0 #counter to keep track of publisher runtime
+    counter = 0
     while not rospy.is_shutdown():
-	encoded_message = bus.recv() #get data off bus recieve buffer 
-	rospy.loginfo("Got message on CAN Bus") #logs for recieving CAN bus message
-	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
-	rospy.loginfo(decoded_message['Radar_Target_Xpos'])
-        rospy.loginfo(counter) #logs counter to terminal
+
+        rospy.loginfo(counter) #logs info as [INFO]
 	counter = counter + 1 
-
-	#update message
-	radar_message = RadarDetection()
-	radar_message.position.x = decoded_message['Radar_Target_Xpos']
-	radar_message.position.y = 0
-	radar_message.position.z = 0 
-	radar_message.velocity.x = 0
-	radar_message.velocity.y = 0
-	radar_message.velocity.z = 0 
-
-        pub.publish(radar_message) #publishes message to topic radar_data
+        pub.publish(radar_message) #actually publishes message to topic radar_data
         rate.sleep() #regulates publishing rate 
 
 if __name__ == '__main__':

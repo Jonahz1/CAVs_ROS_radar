@@ -33,47 +33,98 @@
 #
 # Revision $Id$
 
-## Simple talker demo that published std_msgs/Strings messages
-## to the 'chatter' topic
-
 import rospy
 import cantools
+import can
+import sys
+import os 
+import threading
+
 from std_msgs.msg import String
 from radar_msgs.msg import RadarDetection
 
-def talker():
+ #define message as global variable, written to in handle_bus(), read in ROS node
+
+#supporting thread to handle CAN Bus
+def handle_bus():
+    #message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
+    message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #uncomment to test on kvirtualbus 
+    bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #setup bus for recieving data
+
+    while not rospy.is_shutdown(): 
+	#bus ready to recv data, this also gets data off bus buffer if it is there
+	encoded_message = bus.recv(timeout=10) #recv is a blocking call, data will not update unless new data is on the BUS 
+	if (encoded_message==None):
+		print("Timeout!")
+		sys.exit()					  
+	print("Got message on CAN Bus!")
+	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
+	
+        #update radar_message with new CAN data
+	radar_message.position.x = 0
+	radar_message.position.y = 0
+	radar_message.position.z = 0 
+        radar_message.velocity.x = 0
+        radar_message.velocity.y = 0
+        radar_message.velocity.z = 0 
+
+#supporting function to extract information from .dbc file 
+def extract_dbc(DBC_FILE_PATH, MESSAGE_NAME):
+    rospy.loginfo("Extracting .dbc information.")
+    try: 
+	db = cantools.database.load_file(DBC_FILE_PATH) #load the dbc file
+	temp_message = db.get_message_by_name(MESSAGE_NAME) #get radar signal by name
+	rospy.loginfo("Extracting .dbc data complete.") #status message
+    except: 
+	rospy.logerr("Failed to extract .dbc information. Exiting ROS node.") #status message
+	sys.exit() #shutdown ROS node
+
+    return temp_message, db #return message and instance of dbc class 
+
+def radar_parser():
+    #ROS node setup 
     pub = rospy.Publisher('radar_data', RadarDetection, queue_size=10) #defines topic name, message type, queue size
     rospy.init_node('radar_parser', anonymous=True) #defines node unique node name 
     rate = rospy.Rate(10) # 10hz / 100ms publishing rate
 
-    #extract .dbc information 
-    rospy.loginfo("Extracting .dbc information.")
+    #message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
+    message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #test on kvirtualbus 
+    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel='vcan0') #setup bus for recieving data
+    bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #test bus 
 
-    message = RadarDetection()
+    #init message
+    radar_message = RadarDetection()
+    radar_message.position.x = 0
+    radar_message.position.y = 0
+    radar_message.position.z = 0 #will always be zero (data only give x & y position) 
+    radar_message.velocity.x = 0
+    radar_message.velocity.y = 0
+    radar_message.velocity.z = 0 #will always be zero (data only give x & y velocity)
 
-    #setup position
-    message.position.x = 'oops wrong type'
-    message.position.y = 0
-    message.position.z = 0 #will always be zero 
-   
-    #setup velocity
-    message.velocity.x = 0
-    message.velocity.y = 0
-    message.velocity.z = 0 #will always be zero 
 
-    #setup detection id
-    message.detection_id = 0 #defaults to zero
-
-    #setup amplitude
-    message.amplitude = 0 
-
+    counter = 0 #counter to keep track of publisher runtime
     while not rospy.is_shutdown():
-        rospy.loginfo(message) #logs info as [INFO]
-        pub.publish(message) #actually publishes message to topic radar_data
+	encoded_message = bus.recv() #get data off bus recieve buffer 
+	rospy.loginfo("Got message on CAN Bus") #logs for recieving CAN bus message
+	decoded_message = db.decode_message(encoded_message.arbitration_id, encoded_message.data) #decoded_message is a python dictionary
+	rospy.loginfo(decoded_message['Radar_Target_Xpos'])
+        rospy.loginfo(counter) #logs counter to terminal
+	counter = counter + 1 
+
+	#update message
+	radar_message = RadarDetection()
+	radar_message.position.x = decoded_message['Radar_Target_Xpos']
+	radar_message.position.y = 0
+	radar_message.position.z = 0 
+	radar_message.velocity.x = 0
+	radar_message.velocity.y = 0
+	radar_message.velocity.z = 0 
+
+        pub.publish(radar_message) #publishes message to topic radar_data
         rate.sleep() #regulates publishing rate 
 
 if __name__ == '__main__':
     try:
-        talker()
+        radar_parser()
     except rospy.ROSInterruptException:
         pass
