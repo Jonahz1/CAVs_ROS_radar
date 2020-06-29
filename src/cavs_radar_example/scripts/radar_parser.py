@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-#Jonah Gandy 
+#Author: Jonah Gandy 
 #NetID: jtg390
+#email: jonahgandy@gmail.com
 #source 1: https://pypi.org/project/cantools/
 #source 2: http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29
 
@@ -29,27 +30,21 @@ def radar_parser():
     rospy.init_node('radar_parser', anonymous=True) #defines node unique node name 
     rate = rospy.Rate(10) # 10hz / 100ms publishing rate
 
-    message = extract_dbc('./cavs_ws/dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info 
-    bus = can.interface.Bus(bustype='kvaser', channel='vcan0') #setup bus for recieving data
+    message = extract_dbc('./dbc_files/CAVs_database.dbc','Radar_Target') #extract dbc info /comment out for TEST CODE
+    #Important Node: Node must be run in the root folder of project workspace
+    bus = can.interface.Bus(bustype='kvaser', channel='vcan0') #setup bus for recieving data /comment out for TEST CODE
 
-    #message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #test on kvirtualbus
-    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #test bus 
+    #message, db = extract_dbc('./cavs_ws/dbc_files/test_radar.dbc','ExampleMessage') #TEST CODE
+    #bus = can.interface.Bus(bustype='kvaser',receive_own_messages=True, channel=0) #TEST CODE
 
     #init message
     radar_message = RadarDetection()
-    radar_message.position.x = 0
-    radar_message.position.y = 0
-    radar_message.position.z = 0 #will always be zero (data only give x & y position) 
-    radar_message.velocity.x = 0
-    radar_message.velocity.y = 0
-    radar_message.velocity.z = 0 #will always be zero (data only give x & y velocity)
-
 
     counter = 0 #counter to keep track of publisher runtime
 
     #publishing loop
     while not rospy.is_shutdown():
-	#Recieve CAN Msg
+	#Recieve CAN message
 	encoded_message = bus.recv() #get data off bus recieve buffer 
 	rospy.loginfo("Got message on CAN Bus") #logs for recieving CAN bus message
 
@@ -60,11 +55,11 @@ def radar_parser():
 
 	#Update message
 	radar_message.position.x = decoded_message['Radar_Target_Xpos']
-	radar_message.position.y = decoded_message['Radar_Target_Ypos']
-	radar_message.position.z = None 
-	radar_message.velocity.x = decoded_message['Radar_Target_Vx']
-	radar_message.velocity.y = decoded_message['Radar_Target_Vy']
-	radar_message.velocity.z = None 
+	radar_message.position.y = decoded_message['Radar_Target_Ypos'] #comment this line out for TESTING
+	radar_message.position.z = None #comment this line out for TESTING
+	radar_message.velocity.x = decoded_message['Radar_Target_Vx'] #comment this line out for TESTING
+	radar_message.velocity.y = decoded_message['Radar_Target_Vy'] #comment this line out for TESTING
+	radar_message.velocity.z = None #comment this line out for TESTING
 
 	#Publish message
         pub.publish(radar_message) #publishes message to topic radar_data

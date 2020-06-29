@@ -53,14 +53,10 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cavs_radar_example" TYPE PROGRAM FILES "/home/jonah/cavs_ws/build/cavs_radar_example/catkin_generated/installspace/talker.py")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cavs_radar_example" TYPE PROGRAM FILES "/home/jonah/cavs_ws/build/cavs_radar_example/catkin_generated/installspace/listener.py")
-endif()
-
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cavs_radar_example" TYPE PROGRAM FILES "/home/jonah/cavs_ws/build/cavs_radar_example/catkin_generated/installspace/radar_parser.py")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cavs_radar_example" TYPE PROGRAM FILES "/home/jonah/cavs_ws/build/cavs_radar_example/catkin_generated/installspace/radar_parser_threaded.py")
 endif()
 

@@ -121,7 +121,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS scripts/talker.py scripts/listener.py scripts/radar_parser.py
+catkin_install_python(PROGRAMS scripts/radar_parser.py scripts/radar_parser_threaded.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
