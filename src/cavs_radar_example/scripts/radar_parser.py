@@ -54,16 +54,17 @@ def radar_parser():
 	counter = counter + 1 
 
 	#Update message
-	radar_message.position.x = decoded_message['Radar_Target_Xpos']
-	radar_message.position.y = decoded_message['Radar_Target_Ypos'] #comment this line out for TESTING
-	radar_message.position.z = None #comment this line out for TESTING
-	radar_message.velocity.x = decoded_message['Radar_Target_Vx'] #comment this line out for TESTING
-	radar_message.velocity.y = decoded_message['Radar_Target_Vy'] #comment this line out for TESTING
-	radar_message.velocity.z = None #comment this line out for TESTING
+	if (decoded_message['Radar_Target_Valid']):
+		radar_message.position.x = decoded_message['Radar_Target_Xpos']
+		radar_message.position.y = decoded_message['Radar_Target_Ypos'] #comment this line out for TESTING
+		radar_message.position.z = None #comment this line out for TESTING
+		radar_message.velocity.x = decoded_message['Radar_Target_Vx'] #comment this line out for TESTING
+		radar_message.velocity.y = decoded_message['Radar_Target_Vy'] #comment this line out for TESTING
+		radar_message.velocity.z = None #comment this line out for TESTING
 
-	#Publish message
-        pub.publish(radar_message) #publishes message to topic radar_data
-        rate.sleep() #regulates publishing rate 
+		#Publish message
+		pub.publish(radar_message) #publishes message to topic radar_data
+		rate.sleep() #regulates publishing rate 
 
 if __name__ == '__main__':
     try:
