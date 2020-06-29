@@ -3,7 +3,7 @@
 ## 1. Project Layout Guide
 1. The ROS Node radar_parser.py is located /src/cavs_radar_example/src/scriptts
 2. Documents
-   - Testcode
+   - Testcode (none of the test code is used for project build or dbc extraction)
    - Powerpoint
 3. dbc_files
    - CAVS_database.dbc
